@@ -1,0 +1,49 @@
+---
+# rv_common_Download_archive_url :: Download URL
+# rv_common_Download_archive_url_headers :: Download URL headers
+# rv_common_Download_archive_location :: where to download the archive
+# rv_common_Download_archive_directory_location :: Where to extract the downloaded archive
+# rv_common_Download_archive_unarchive_extra_opts :: extra options while unarchiving
+- name: Common | Download Archive | Mandatory Checks
+  assert:
+    that:
+      - "{{  item  }} is defined"
+      - "{{  item  }} != None"
+    fail_msg: "{{ item }} is not defined, it should be present"
+    success_msg: "{{ item }} is defined"
+  with_items:
+    - rv_common_Download_archive_url
+    - rv_common_Download_archive_location
+    - rv_common_Download_archive_directory_location
+
+- name: Common | Download Archive | Downloading the archive
+  get_url:
+    url: "{{ rv_common_Download_archive_url }}"
+    headers: "{{  rv_common_Download_archive_url_headers  |  default(omit)  }}" ##
+    dest: "{{  rv_common_Download_archive_location  }}"
+    mode: '0777'
+
+- name: Common | Download Archive | Creating destination directory
+  file:
+    path: "{{ rv_common_Download_archive_directory_location }}"
+    state: directory
+
+- name: Common | Download Archive | Extracting the zip in {{ rv_common_Download_archive_directory_location }}
+  unarchive:
+    src: "{{  rv_common_Download_archive_location  }}"
+    dest: "{{ rv_common_Download_archive_directory_location }}"
+    remote_src: true
+    extra_opts: "{{  rv_common_Download_archive_unarchive_extra_opts  |  default(omit)  }}"
+
+- name: Common | Download Archive | Removing downloaded archive files
+  file:
+    path: "{{  rv_common_Download_archive_location  }}"
+    state: absent
+
+- name: Common | Download Archive | Set dummy variables for rv_common_Download_archive_url_headers post download
+  set_fact:
+    rv_common_Download_archive_url_headers: {}
+
+- name: Common | Download Archive | Set dummy variables for rv_common_Download_archive_unarchive_extra_opts post download
+  set_fact:
+    rv_common_Download_archive_unarchive_extra_opts: []
