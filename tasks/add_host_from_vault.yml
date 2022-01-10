@@ -1,0 +1,39 @@
+---
+- name: Fail if secret vault endpoint is not set.
+  fail:
+    msg: "ss_secret_vault_endpoint is not set"
+  when:
+    - ss_secret_vault_endpoint is undefined
+    - ss_secret_vault_endpoint | length < 1
+
+- name: Fail if secret vault token is not set.
+  fail:
+    msg: "ss_vault_secret_vault_token is not set"
+  when:
+    - ss_vault_secret_vault_token is undefined
+    - ss_vault_secret_vault_token | length < 1
+
+- name: Fail if hostname is not set. rv_common_add_host_hostname
+  fail:
+    msg: "rv_common_add_host_hostname is not set"
+  when:
+    - rv_common_add_host_hostname is undefined
+    - rv_common_add_host_hostname | length < 1
+
+- name: Checking for hostname
+  set_fact:
+    rv_common_add_host_vault_data: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=secret/data/ansible/inventory/{{ rv_common_add_host_hostname }} token={{  ss_vault_secret_vault_token  }} url={{  ss_secret_vault_endpoint  }}')  }}"
+
+- debug: var=rv_common_add_host_hostname.ansible_host
+
+- name: Add vault host to inventory in order to avoid accidental deletion
+  add_host:
+    hostname: "{{  rv_common_add_host_hostname  }}"
+    ansible_python_interpreter: "{{  rv_common_add_host_vault_data.ansible_python_interpreter  | default(omit) }}"
+    ansible_connection: "{{  rv_common_add_host_vault_data.ansible_connection  | default('ssh') }}"
+    ansible_host: "{{  rv_common_add_host_vault_data.ansible_host  | default('localhost') }}"
+    ansible_port: "{{  rv_common_add_host_vault_data.ansible_port  | default('22') }}"
+    ansible_user: "{{  rv_common_add_host_vault_data.ansible_user  | default('root') }}"
+    ansible_password: "{{  rv_common_add_host_vault_data.ansible_password  | default(omit) }}"
+    ansible_sudo_pass: "{{  rv_common_add_host_vault_data.ansible_sudo_pass  | default(omit) }}"
+    ansible_ssh_private_key_file: "{{  rv_common_add_host_vault_data.ansible_ssh_private_key_file  | default(omit) }}"
