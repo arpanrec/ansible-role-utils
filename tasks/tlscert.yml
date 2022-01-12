@@ -39,7 +39,7 @@
   block:
     - name: TLS Certificate | Generate an OpenSSL private key
       tags: always
-      openssl_privatekey:
+      community.crypto.openssl_privatekey:
         path: "{{ rv_tls_key_path }}"
         owner: "{{  rv_cert_owner  }}"
 
@@ -51,18 +51,20 @@
 
     - name: TLS Certificate | Generate an OpenSSL Certificate Signing Request with Subject information
       tags: always
-      openssl_csr:
+      community.crypto.openssl_csr:
         path: "{{rv_tls_tmpp_csr_dir.path}}/server.csr"
         privatekey_path: "{{ rv_tls_key_path }}"
         owner: "{{  rv_cert_owner  }}"
         subject_alt_name: "{{ item.value | map('regex_replace', '^', 'DNS:') | list }}"
         common_name: "{{  rv_tls_common_name  }}"
+        basic_constraints:
+          - 'CA:TRUE'
       with_dict:
         dns_server: "{{ rv_tls_alt_names_combiled }}"
 
     - name: TLS Certificate | Generate a Self Signed OpenSSL certificate
       tags: always
-      openssl_certificate:
+      community.crypto.x509_certificate:
         path: "{{ rv_tls_cert_path }}"
         privatekey_path: "{{ rv_tls_key_path }}"
         csr_path: "{{rv_tls_tmpp_csr_dir.path}}/server.csr"
