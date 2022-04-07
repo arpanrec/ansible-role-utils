@@ -3,4 +3,4 @@ dependencies: []
 galaxy_info:
   role_name: utils
   author: arpanrec
-  namespace: sourceshift
+  namespace: arpanrec
